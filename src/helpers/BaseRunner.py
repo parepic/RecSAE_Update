@@ -75,6 +75,7 @@ class BaseRunner(object):
 					evaluations[key] = (hit / np.log2(gt_rank + 1)).mean()
 				else:
 					raise ValueError('Undefined evaluation metric: {}.'.format(metric))
+
 		return evaluations
 
 	def __init__(self, args):
@@ -214,15 +215,15 @@ class BaseRunner(object):
 			return True
 		return False
 
-	def evaluate(self, dataset: BaseModel.Dataset, topks: list, metrics: list) -> Dict[str, float]:
+	def evaluate(self, dataset: BaseModel.Dataset, topks: list, metrics: list, prediction_label = "prediction") -> Dict[str, float]:
 		"""
 		Evaluate the results for an input dataset.
 		:return: result dict (key: metric@k)
 		"""
-		predictions = self.predict(dataset)
+		predictions = self.predict(dataset, prediction_label = prediction_label)
 		return self.evaluate_method(predictions, topks, metrics)
 
-	def predict(self, dataset: BaseModel.Dataset, save_prediction: bool = False) -> np.ndarray:
+	def predict(self, dataset: BaseModel.Dataset, save_prediction: bool = False, prediction_label = 'prediction') -> np.ndarray:
 		"""
 		The returned prediction is a 2D-array, each row corresponds to all the candidates,
 		and the ground-truth item poses the first.
@@ -231,13 +232,18 @@ class BaseRunner(object):
 		"""
 		dataset.model.eval()
 		predictions = list()
+		loss_list = []
 		dl = DataLoader(dataset, batch_size=self.eval_batch_size, shuffle=False, num_workers=self.num_workers,
 						collate_fn=dataset.collate_batch, pin_memory=self.pin_memory)
 		for batch in tqdm(dl, leave=False, ncols=100, mininterval=1, desc='Predict'):
+			# import ipdb;ipdb.set_trace()
 			if hasattr(dataset.model,'inference'):
-				prediction = dataset.model.inference(utils.batch_to_gpu(batch, dataset.model.device))['prediction']
+				prediction = dataset.model.inference(utils.batch_to_gpu(batch, dataset.model.device))[prediction_label]
 			else:
-				prediction = dataset.model(utils.batch_to_gpu(batch, dataset.model.device))['prediction']
+				x = dataset.model(utils.batch_to_gpu(batch, dataset.model.device))
+				prediction = x[prediction_label]
+				if prediction_label == 'prediction_sae':
+					loss_list.append(dataset.model.sae_module.fvu.detach().cpu().data.numpy())
 			predictions.extend(prediction.cpu().data.numpy())
 		predictions = np.array(predictions)
 
@@ -249,13 +255,16 @@ class BaseRunner(object):
 				rows.extend(idx)
 				cols.extend(clicked_items)
 			predictions[rows, cols] = -np.inf
+		if prediction_label == 'prediction_sae':
+			loss = np.mean(loss_list)
+			logging.info("      SAE loss={:<.4f}".format(loss))
 		return predictions
 
-	def print_res(self, dataset: BaseModel.Dataset) -> str:
+	def print_res(self, dataset: BaseModel.Dataset, prediction_label = "prediction") -> str:
 		"""
 		Construct the final result string before/after training
 		:return: test result string
 		"""
-		result_dict = self.evaluate(dataset, self.topk, self.metrics)
+		result_dict = self.evaluate(dataset, self.topk, self.metrics, prediction_label = prediction_label)
 		res_str = '(' + utils.format_metric(result_dict) + ')'
 		return res_str

@@ -179,6 +179,7 @@ if __name__ == '__main__':
 										args.include_situation_features)
 
 	# Logging configuration
+	# Logging configuration
 	log_args = [init_args.model_name+init_args.model_mode, args.dataset+args.data_appendix, str(args.random_seed)]
 	for arg in ['lr', 'l2'] + model_name.extra_log_args:
 		log_args.append(arg + '=' + str(eval('args.' + arg)))
@@ -188,6 +189,7 @@ if __name__ == '__main__':
 	if args.model_path == '':
 		args.model_path = '../model/{}/{}.pt'.format(init_args.model_name+init_args.model_mode, log_file_name)
 
+	
 	utils.check_dir(args.log_file)
 	logging.basicConfig(filename=args.log_file, level=args.verbose)
 	logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
