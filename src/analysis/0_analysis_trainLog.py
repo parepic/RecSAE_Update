@@ -122,8 +122,8 @@ def analysis(batch_size,sae_lr):
 	# 输出 DataFrame 供检查
 	# print(df_all)
 
-	# file_path = f"../../log/SASRec_SAE/figs/SASRec_SAE__{dataset_name}__0__lr=0.0001__l2=1e-06__emb_size=64__num_layers=1__num_heads=1__sae_lr={sae_lr}__sae_k={sae_k}__sae_scale_size={sae_scale_size}__batch_size={batch_size}.png"
-	# drawFig(df_all,best_epoch,recmodel_ndcg5s,file_path)
+	file_path = f"../../log/SASRec_SAE/figs/SASRec_SAE__{dataset_name}__0__lr=0.0001__l2=1e-06__emb_size=64__num_layers=1__num_heads=1__sae_lr={sae_lr}__sae_k={sae_k}__sae_scale_size={sae_scale_size}__batch_size={batch_size}.png"
+	drawFig(df_all,best_epoch,recmodel_ndcg5s,file_path)
 
 	return df_all, best_epoch
 
@@ -183,21 +183,23 @@ import os
 if __name__=='__main__':
 	sae_lr_list = ['5e-05','0.0001','0.0003','0.0005','0.001']
 	batch_size_list = [8,16,32,64,128]
-	# sae_lr = sae_lr_list[4]
-	# batch_size = batch_size_list[3]
-	rec_result = pd.DataFrame(index = batch_size_list, columns = sae_lr_list)
-	loss_result = pd.DataFrame(index = batch_size_list, columns = sae_lr_list)
+	sae_lr = sae_lr_list[3]
+	batch_size = batch_size_list[1]
+	result, best_epoch = analysis(batch_size,sae_lr)
+	print(result, best_epoch )
+	# rec_result = pd.DataFrame(index = batch_size_list, columns = sae_lr_list)
+	# loss_result = pd.DataFrame(index = batch_size_list, columns = sae_lr_list)
 	
-	for sae_lr in sae_lr_list:
-		for batch_size in batch_size_list:
-			result, best_epoch = analysis(batch_size,sae_lr)
-			if result is None:
-				continue
-			print(batch_size, sae_lr)
-			result.set_index('Epoch',inplace=True)
-			rec_result.loc[batch_size,sae_lr] = result.loc['RecSAE_test','NDCG@5']
-			loss_result.loc[batch_size,sae_lr] = result.loc[best_epoch,'Loss']
-	rec_result.fillna(0,inplace=True)
-	loss_result.fillna(0,inplace=True)
-	print(rec_result)
-	print(loss_result)
+	# for sae_lr in sae_lr_list:
+	# 	for batch_size in batch_size_list:
+	# 		result, best_epoch = analysis(batch_size,sae_lr)
+	# 		if result is None:
+	# 			continue
+	# 		print(batch_size, sae_lr)
+	# 		result.set_index('Epoch',inplace=True)
+	# 		rec_result.loc[batch_size,sae_lr] = result.loc['RecSAE_test','NDCG@5']
+	# 		loss_result.loc[batch_size,sae_lr] = result.loc[best_epoch,'Loss']
+	# rec_result.fillna(0,inplace=True)
+	# loss_result.fillna(0,inplace=True)
+	# print(rec_result)
+	# print(loss_result)

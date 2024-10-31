@@ -16,9 +16,12 @@
 
 # python main_sae.py  --epoch 50 --sae_lr 1e-4 --batch_size 64 --sae_k 32 --sae_scale_size 32 --model_name SASRec_SAE --emb_size 64 --num_layers 1 --num_heads 1 --lr 1e-4 --l2 1e-6 --history_max 20 --dataset 'Grocery_and_Gourmet_Food' --path '../data' --test_all 1 --sae_train 1
 
-python main_sae.py  --epoch 50 --sae_lr 5e-4 --batch_size 16 --sae_k 32 --sae_scale_size 32 --model_name SASRec_SAE --emb_size 64 --num_layers 1 --num_heads 1 --lr 1e-4 --l2 1e-6 --history_max 20 --dataset 'Grocery_and_Gourmet_Food' --path '../data' --test_all 1 --sae_train 1
+python main_sae.py  --epoch 50 --sae_lr 5e-4 --batch_size 8 --sae_k 32 --sae_scale_size 32 --model_name SASRec_SAE --emb_size 64 --num_layers 1 --num_heads 1 --lr 1e-4 --l2 1e-6 --history_max 20 --dataset 'Grocery_and_Gourmet_Food' --path '../data' --test_all 1 --sae_train 1
 
 python main_sae.py  --epoch 50 --sae_lr 1e-3 --batch_size 32 --sae_k 32 --sae_scale_size 32 --model_name SASRec_SAE --emb_size 64 --num_layers 1 --num_heads 1 --lr 1e-4 --l2 1e-6 --history_max 20 --dataset 'Grocery_and_Gourmet_Food' --path '../data' --test_all 1 --sae_train 1
+
+python main_sae.py  --epoch 50 --sae_lr 1e-3 --batch_size 16 --sae_k 32 --sae_scale_size 32 --model_name SASRec_SAE --emb_size 64 --num_layers 1 --num_heads 1 --lr 1e-4 --l2 1e-6 --history_max 20 --dataset 'Grocery_and_Gourmet_Food' --path '../data' --test_all 1 --sae_train 1
+
 
 # python main_sae.py  --epoch 50 --sae_lr 5e-4 --batch_size 32 --sae_k 32 --sae_scale_size 32 --model_name SASRec_SAE --emb_size 64 --num_layers 1 --num_heads 1 --lr 1e-4 --l2 1e-6 --history_max 20 --dataset 'Grocery_and_Gourmet_Food' --path '../data' --test_all 1 --sae_train 1
 
