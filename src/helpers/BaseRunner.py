@@ -223,28 +223,29 @@ class BaseRunner(object):
 		predictions = self.predict(dataset, prediction_label = prediction_label)
 		return self.evaluate_method(predictions, topks, metrics)
 
-	def predict(self, dataset: BaseModel.Dataset, save_prediction: bool = False, prediction_label = 'prediction') -> np.ndarray:
+	def predict(self, dataset: BaseModel.Dataset, save_prediction: bool = False, prediction_label='prediction') -> np.ndarray:
 		"""
 		The returned prediction is a 2D-array, each row corresponds to all the candidates,
 		and the ground-truth item poses the first.
 		Example: ground-truth items: [1, 2], 2 negative items for each instance: [[3,4], [5,6]]
-				 predictions like: [[1,3,4], [2,5,6]]
+				predictions like: [[1,3,4], [2,5,6]]
 		"""
 		dataset.model.eval()
 		predictions = list()
 		loss_list = []
-		dl = DataLoader(dataset, batch_size=self.eval_batch_size, shuffle=False, num_workers=self.num_workers,
+		dl = DataLoader(dataset, batch_size=self.eval_batch_size, shuffle=False, num_workers=0,
 						collate_fn=dataset.collate_batch, pin_memory=self.pin_memory)
-		for batch in tqdm(dl, leave=False, ncols=100, mininterval=1, desc='Predict'):
-			# import ipdb;ipdb.set_trace()
-			if hasattr(dataset.model,'inference'):
-				prediction = dataset.model.inference(utils.batch_to_gpu(batch, dataset.model.device))[prediction_label]
-			else:
-				x = dataset.model(utils.batch_to_gpu(batch, dataset.model.device))
-				prediction = x[prediction_label]
-				if prediction_label == 'prediction_sae':
-					loss_list.append(dataset.model.sae_module.fvu.detach().cpu().data.numpy())
-			predictions.extend(prediction.cpu().data.numpy())
+		with torch.no_grad():  # Correctly aligned with `dl` and other statements
+			for batch in tqdm(dl, leave=False, ncols=100, mininterval=1, desc='Predict'):
+				# import ipdb;ipdb.set_trace()
+				if hasattr(dataset.model, 'inference'):
+					prediction = dataset.model.inference(utils.batch_to_gpu(batch, dataset.model.device))[prediction_label]
+				else:
+					x = dataset.model(utils.batch_to_gpu(batch, dataset.model.device))
+					prediction = x[prediction_label]
+					if prediction_label == 'prediction_sae':
+						loss_list.append(dataset.model.sae_module.fvu.detach().cpu().numpy())
+				predictions.extend(prediction.detach().cpu().numpy())
 		predictions = np.array(predictions)
 
 		if dataset.model.test_all:
@@ -259,6 +260,7 @@ class BaseRunner(object):
 			loss = np.mean(loss_list)
 			logging.info("      SAE loss={:<.4f}".format(loss))
 		return predictions
+
 
 	def print_res(self, dataset: BaseModel.Dataset, prediction_label = "prediction") -> str:
 		"""

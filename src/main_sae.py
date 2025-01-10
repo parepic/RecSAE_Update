@@ -62,17 +62,18 @@ def train_sae(args, model, runner, data_dict):
 def test_sae(args, model, runner, data_dict):
 	model.load_model(args.recsae_model_path)
 
-	eval_res = runner.print_res(data_dict['dev'], prediction_label = 'prediction_sae')
-	logging.info(os.linesep + 'Dev  After Training: ' + eval_res)
+	# eval_res = runner.print_res(data_dict['dev'], prediction_label = 'prediction_sae')
+	# logging.info(os.linesep + 'Dev  After Training: ' + eval_res)
+	# data_dict['dev'].model.sae_module.save_highest_activations("highest_activations_dev_new.txt")
 	eval_res = runner.print_res(data_dict['test'], prediction_label = 'prediction_sae',save_result = True)
 	logging.info(os.linesep + 'Test After Training: ' + eval_res)
 
 	# torch.save(model, args.recsae_model_path+"h")
-	
-	if args.save_final_results==1: # save the prediction results
-		# save_rec_results(data_dict['dev'], runner, 100)
-		save_rec_results(data_dict['test'], runner, 100)
-	
+	# if args.save_final_results==1: # save the prediction results
+	# 	# save_rec_results(data_dict['dev'], runner, 100)
+	# 	save_rec_results(data_dict['test'], runner, 100)
+	data_dict['test'].model.sae_module.save_highest_activations("highest_activations_test_new.txt")
+
 
 def main():
 	logging.info('-' * 45 + ' BEGIN: ' + utils.get_time() + ' ' + '-' * 45)
@@ -110,8 +111,6 @@ def main():
 	for phase in ['train', 'dev', 'test']:
 		data_dict[phase] = model_name.Dataset(model, corpus, phase)
 		data_dict[phase].prepare()
-
-
 	runner = runner_name(args)
 
 	if args.sae_train:

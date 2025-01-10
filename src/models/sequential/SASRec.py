@@ -79,8 +79,8 @@ class SASRecBase(object):
 			his_vectors = block(his_vectors, attn_mask)
 		his_vectors = his_vectors * valid_his[:, :, None].float()
 
-		his_vector = his_vectors[torch.arange(batch_size), lengths - 1, :]
-		# his_vector = his_vectors.sum(1) / lengths[:, None].float()
+		# his_vector = his_vectors[torch.arange(batch_size), lengths - 1, :]
+		his_vector = his_vectors.sum(1) / lengths[:, None].float()
 		# ↑ average pooling is shown to be more effective than the most recent embedding
 
 		i_vectors = self.i_embeddings(i_ids)
@@ -203,9 +203,13 @@ class SASRec_SAE(SASRec):
 		if self.mode == INFERENCE_MODE:
 			sae_output = self.sae_module(his_vector)
 			prediction_sae = (sae_output[:, None, :] * i_vectors).sum(-1)
+			topk_indices = np.argsort(prediction_sae.cpu().numpy(), axis=1)[:, -10:][:, ::-1]
+			self.sae_module.update_highest_activations(history, topk_indices)
 		elif self.mode == TEST_MODE:
 			sae_output = self.sae_module(his_vector, save_result = True)
 			prediction_sae = (sae_output[:, None, :] * i_vectors).sum(-1)
+			topk_indices = np.argsort(prediction_sae.cpu().numpy(), axis=1)[:, -10:][:, ::-1]
+			self.sae_module.update_highest_activations(history, topk_indices)
 			if self.epoch_users is None:
 				self.epoch_users = feed_dict['user_id'].detach().cpu().numpy()
 				self.epoch_history_items = history.detach().cpu().numpy()

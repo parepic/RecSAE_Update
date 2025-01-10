@@ -107,3 +107,29 @@ def non_increasing(lst: list) -> bool:
 def get_time():
 	return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+
+
+def get_titles_from_ids(id_list, excel_file=r'c:\Users\Dell\Desktop\TUDelft\thesis\RecSAE\RecSAE\data\Grocery_and_Gourmet_Food\new_meta_data.xlsx'):
+    """
+    Given a list of lists of IDs, fetch the corresponding titles from an Excel file.
+    
+    Parameters:
+    - id_list: List of lists of new_item_id values.
+    - excel_file: Path to the Excel file containing new_item_id and title columns.
+
+    Returns:
+    - A list of lists of titles, excluding invalid IDs (like 0).
+    """
+    # Load the Excel file
+    meta_df = pd.read_excel(excel_file)
+
+    # Create a dictionary mapping new_item_id to titles
+    id_to_title = pd.Series(meta_df['title'].values, index=meta_df['new_item_id']).to_dict()
+
+    # Iterate over the list of lists and replace IDs with titles, excluding invalid IDs
+    title_list = [
+        [id_to_title[item_id] for item_id in sublist if item_id != 0 and item_id in id_to_title]
+        for sublist in id_list
+    ]
+
+    return title_list

@@ -144,12 +144,16 @@ class BaseModel(nn.Module):
 				else:
 					stack_val = np.array([d[key] for d in feed_dicts])
 				if stack_val.dtype == np.object:  # inconsistent length (e.g., history)
-					feed_dict[key] = pad_sequence([torch.from_numpy(x) for x in stack_val], batch_first=True)
+					feed_dict[key] = pad_sequence(
+						[torch.from_numpy(x).requires_grad_(False) for x in stack_val],
+						batch_first=True
+					)
 				else:
-					feed_dict[key] = torch.from_numpy(stack_val)
+					feed_dict[key] = torch.from_numpy(stack_val).requires_grad_(False)
 			feed_dict['batch_size'] = len(feed_dicts)
 			feed_dict['phase'] = self.phase
 			return feed_dict
+
 
 class GeneralModel(BaseModel):
 	reader, runner = 'BaseReader', 'BaseRunner'

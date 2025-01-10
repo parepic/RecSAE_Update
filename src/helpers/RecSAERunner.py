@@ -119,7 +119,7 @@ class RecSAERunner(BaseRunner):
 		model.sae_module.set_decoder_norm_to_unit_norm()
 		
 		loss_lst = list()
-		dl = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers,
+		dl = DataLoader(dataset, batch_size=self.batch_size, shuffle=True, num_workers=0,
 						collate_fn=dataset.collate_batch, pin_memory=self.pin_memory)
 		for batch in tqdm(dl, leave=False, desc='Epoch {:<3}'.format(epoch), ncols=100, mininterval=1):
 			batch = utils.batch_to_gpu(batch, model.device)
