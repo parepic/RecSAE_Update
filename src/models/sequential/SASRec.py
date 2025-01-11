@@ -19,7 +19,7 @@ import pandas as pd
 
 from models.BaseModel import SequentialModel
 from models.BaseImpressionModel import ImpressionSeqModel
-from utils import layers
+from utils import layers, layers2
 
 from models.sae.sae import SAE
 
@@ -53,6 +53,16 @@ class SASRecBase(object):
 									dropout=self.dropout, kq_same=False)
 			for _ in range(self.num_layers)
 		])
+  
+		self.trm_encoder = layers2.TransformerEncoder(
+					n_layers=self.num_layers,
+					n_heads=self.num_heads,
+					hidden_size=64,
+					inner_size=256,
+					hidden_dropout_prob=0.5,
+					attn_dropout_prob=0.5,
+					hidden_act='gelu',
+				)
 
 	def forward(self, feed_dict):
 		self.check_list = []
@@ -79,8 +89,8 @@ class SASRecBase(object):
 			his_vectors = block(his_vectors, attn_mask)
 		his_vectors = his_vectors * valid_his[:, :, None].float()
 
-		# his_vector = his_vectors[torch.arange(batch_size), lengths - 1, :]
-		his_vector = his_vectors.sum(1) / lengths[:, None].float()
+		his_vector = his_vectors[torch.arange(batch_size), lengths - 1, :]
+		# his_vector = his_vectors.sum(1) / lengths[:, None].float()
 		# ↑ average pooling is shown to be more effective than the most recent embedding
 
 		i_vectors = self.i_embeddings(i_ids)
@@ -186,11 +196,14 @@ class SASRec_SAE(SASRec):
 		# Self-attention
 		causality_mask = np.tril(np.ones((1, 1, seq_len, seq_len), dtype=np.int))
 		attn_mask = torch.from_numpy(causality_mask).to(self.device)
+  
 		# attn_mask = valid_his.view(batch_size, 1, 1, seq_len)
-		for block in self.transformer_block:
-			his_vectors = block(his_vectors, attn_mask)
-		his_vectors = his_vectors * valid_his[:, :, None].float()
-
+		# for block in self.transformer_block:
+		# 	his_vectors = block(his_vectors, attn_mask)
+		# his_vectors = his_vectors * valid_his[:, :, None].float()
+		his_vector = self.trm_encoder(
+					his_vectors, attn_mask, output_all_encoded_layers=True
+				)[1]
 
 		his_vector = his_vectors[torch.arange(batch_size), lengths - 1, :]
 		# his_vector = his_vectors.sum(1) / lengths[:, None].float()
